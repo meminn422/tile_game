@@ -4,13 +4,17 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public Rigidbody2D rb;
-    public float speed = 5f; // 水平移動速度
-    public Animator animator;
-    public SpriteRenderer spriteRenderer;
+    public Rigidbody2D rb; // Rigidbody2D 組件的引用
+    public Animator animator; // Animator 組件的引用
+    public SpriteRenderer spriteRenderer; // SpriteRenderer 組件的引用
+
+    public float speed; // 水平移動速度
+    public float jumpSpeed; // 垂直跳躍速度
+    private bool isJumping = false; // 用來檢查玩家是否在跳躍
 
     private void Awake()
     {
+        // 初始化組件
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -18,11 +22,22 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        // 控制動畫參數
+        // 檢查是否按下跳躍按鍵
+        if (Input.GetButtonDown("Jump")) // 修正了 GetButtonDown 的拼寫錯誤
+        {
+            if (Mathf.Abs(rb.velocity.y) < 0.01f) // 確保只有在玩家接觸地面時才能跳躍
+            {
+                isJumping = true;
+            }
+        }
+
+        // 獲取水平輸入
         float move = Input.GetAxisRaw("Horizontal");
+        
+        // 設置 Animator 的 "Speed" 參數，用於控制動畫
         animator.SetFloat("Speed", Mathf.Abs(move));
 
-        // 翻轉角色方向
+        // 根據移動方向翻轉角色的精靈圖
         if (move > 0)
         {
             spriteRenderer.flipX = false;
@@ -35,8 +50,15 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // 控制角色移動
+        // 控制水平移動
         float move = Input.GetAxisRaw("Horizontal");
         rb.velocity = new Vector2(move * speed, rb.velocity.y);
+
+        // 處理跳躍邏輯
+        if (isJumping)
+        {
+            isJumping = false;
+            rb.velocity = new Vector2(rb.velocity.x, jumpSpeed); // 應用跳躍的垂直速度
+        }
     }
 }
