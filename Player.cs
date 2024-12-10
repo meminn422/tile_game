@@ -7,10 +7,13 @@ public class Player : MonoBehaviour
     public Rigidbody2D rb; // Rigidbody2D 組件的引用
     public Animator animator; // Animator 組件的引用
     public SpriteRenderer spriteRenderer; // SpriteRenderer 組件的引用
-
-    public float speed; // 水平移動速度
-    public float jumpSpeed; // 垂直跳躍速度
+    public GameObject jc;
+    public LayerMask ground;
+    public float speed = 5f; // 水平移動速度
+    public float jumpSpeed = 15f; // 垂直跳躍速度
     private bool isJumping = false; // 用來檢查玩家是否在跳躍
+
+    public bool isGround;
 
     private void Awake()
     {
@@ -25,10 +28,11 @@ public class Player : MonoBehaviour
         // 檢查是否按下跳躍按鍵
         if (Input.GetButtonDown("Jump")) // 修正了 GetButtonDown 的拼寫錯誤
         {
-            if (Mathf.Abs(rb.velocity.y) < 0.01f) // 確保只有在玩家接觸地面時才能跳躍
-            {
+            // if (Mathf.Abs(rb.velocity.y) < 0.01f) // 確保只有在玩家接觸地面時才能跳躍
+            // {
                 isJumping = true;
-            }
+            // }
+            isGround = Physics2D.OverlapCircle(jc.transform.position, 0.1f, ground);
         }
 
         // 獲取水平輸入
@@ -57,8 +61,17 @@ public class Player : MonoBehaviour
         // 處理跳躍邏輯
         if (isJumping)
         {
+            animator.SetBool("jump",true);
+            animator.SetBool("fall",false);
+
             isJumping = false;
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed); // 應用跳躍的垂直速度
         }
+        if (rb.velocity.y<0)
+         {
+            animator.SetBool("fall",true);
+            animator.SetBool("jump",false);
+
+         }
     }
 }
