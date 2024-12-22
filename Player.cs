@@ -19,16 +19,10 @@ public class Player : MonoBehaviour
     public Transform leftFootTarget; // 左腳的IK目標
     public Transform rightFootTarget; // 右腳的IK目標
     public float stepDistance = 0.5f; // 每步的移動距離
-
-    // public Transform groundCheck; // 用於檢測地面的空物件
-    // public float groundCheckRadius; // 地面檢測的半徑
-    // public LayerMask groundLayer; // 哪些層是地面
-
     //黏液
     public GameObject slimePrefab; // 黏液的預製體
     public float slimeDuration = 5f; // 黏液持續時間
     public Transform slimeSpawnPoint; // 黏液生成位置
-
     //隱身
     // public SpriteRenderer spriteRenderer; // 角色的 SpriteRenderer
     public float invisibilityDuration = 10f; // 隱身持續時間
