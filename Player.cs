@@ -15,8 +15,10 @@ public class Player : MonoBehaviour
     public LayerMask ground; //map
 
     //左右腳動畫控制
-    public Transform leftFootTarget; // 左腳目標點
-    public Transform rightFootTarget; // 右腳目標點
+     public Transform characterRoot; // 角色的根骨骼（通常是角色的主Transform）
+    public Transform leftFootTarget; // 左腳的IK目標
+    public Transform rightFootTarget; // 右腳的IK目標
+    public float stepDistance = 0.5f; // 每步的移動距離
 
     // public Transform groundCheck; // 用於檢測地面的空物件
     // public float groundCheckRadius; // 地面檢測的半徑
@@ -37,8 +39,6 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-         // 獲取角色的 SpriteRenderer
-        spriteRenderer = GetComponent<SpriteRenderer>();
     }
      private void Update()
     {
@@ -46,7 +46,7 @@ public class Player : MonoBehaviour
             isJump = true;
         }
         isGround = Physics2D.OverlapCircle(jc.transform.position, 0.1f, ground);
-
+ 
         // 技能觸發按鍵
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -57,13 +57,27 @@ public class Player : MonoBehaviour
         {
             StartCoroutine(ActivateInvisibility());
         }
+         // 根據角色的位置動態更新 IK 目標
+        leftFootTarget.position = characterRoot.position + new Vector3(-stepDistance, 0, 0);
+        rightFootTarget.position = characterRoot.position + new Vector3(stepDistance, 0, 0);
+
+        // 確保目標的高度符合地面（可以加入Raycast進行精確調整）
+        leftFootTarget.position = new Vector3(leftFootTarget.position.x, 0.5f, leftFootTarget.position.z);
+        rightFootTarget.position = new Vector3(rightFootTarget.position.x, 0.5f, rightFootTarget.position.z);
     }
     private void FixedUpdate()
     {
         float move = Input.GetAxisRaw("Horizontal");
         rb.velocity = new Vector2(move * speed, rb.velocity.y);
         animator.SetFloat("idle", Mathf.Abs(move));
-        spriteRenderer.flipX = move == 0 ? spriteRenderer.flipX : (move > 0 ? false : true);
+        // spriteRenderer.flipX = move == 0 ? spriteRenderer.flipX : (move > 0 ? false : true);
+        if (move != 0)
+        {
+            Vector3 scale = transform.localScale;
+            scale.x = move > 0 ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x); // 根據移動方向改變 X 軸方向
+            transform.localScale = scale;
+        }
+
          if(isGround){
             // animator.SetBool("fall", false);
             animator.SetBool("jump", false);
@@ -82,7 +96,6 @@ public class Player : MonoBehaviour
         if (rb.velocity.y < 0)
         {
             animator.SetBool("jump", false);
-
         }
     }
     private void CastSlime()
@@ -123,32 +136,5 @@ public class Player : MonoBehaviour
             }
         }
     }
-    //腳部ik
-    private void OnAnimatorIK(int layerIndex)
-    {
-        if (animator)
-        {
-            // 設定左腳目標點
-            SetFootIK(AvatarIKGoal.LeftFoot, leftFootTarget);
-
-            // 設定右腳目標點
-            SetFootIK(AvatarIKGoal.RightFoot, rightFootTarget);
-        }
-    }
-    private void SetFootIK(AvatarIKGoal foot, Transform target)
-    {
-        RaycastHit2D hit = Physics2D.Raycast(target.position, Vector2.down, 1f, ground);
-
-        if (hit.collider != null)
-        {
-            // 將 IK 設置到檢測到的地面位置
-            animator.SetIKPosition(foot, hit.point);
-            animator.SetIKPositionWeight(foot, 1.0f);
-        }
-        else
-        {
-            // 如果沒有檢測到地面，將權重設為 0
-            animator.SetIKPositionWeight(foot, 0.0f);
-        }
-    }
+    
 }
