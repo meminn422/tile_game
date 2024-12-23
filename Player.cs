@@ -19,14 +19,23 @@ public class Player : MonoBehaviour
     public Transform leftFootTarget; // 左腳的IK目標
     public Transform rightFootTarget; // 右腳的IK目標
     public float stepDistance = 0.5f; // 每步的移動距離
+
+    // public Transform groundCheck; // 用於檢測地面的空物件
+    // public float groundCheckRadius; // 地面檢測的半徑
+    // public LayerMask groundLayer; // 哪些層是地面
+
+    // 吸花蜜相關
+    public bool isAbsorbing = false; // 是否正在吸花蜜
     //黏液
     public GameObject slimePrefab; // 黏液的預製體
     public float slimeDuration = 5f; // 黏液持續時間
     public Transform slimeSpawnPoint; // 黏液生成位置
+
     //隱身
     // public SpriteRenderer spriteRenderer; // 角色的 SpriteRenderer
     public float invisibilityDuration = 10f; // 隱身持續時間
     private bool isInvisible = false; // 是否處於隱身狀態
+    
      private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -40,7 +49,11 @@ public class Player : MonoBehaviour
             isJump = true;
         }
         isGround = Physics2D.OverlapCircle(jc.transform.position, 0.1f, ground);
- 
+        // 吸花蜜按鍵檢測
+        if (Input.GetKeyDown(KeyCode.J) && !isAbsorbing)
+        {
+            StartCoroutine(AbsorbNectar());
+        }
         // 技能觸發按鍵
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -61,6 +74,8 @@ public class Player : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        if (isAbsorbing) return; // 吸花蜜期間禁止移動
+
         float move = Input.GetAxisRaw("Horizontal");
         rb.velocity = new Vector2(move * speed, rb.velocity.y);
         animator.SetFloat("idle", Mathf.Abs(move));
@@ -130,5 +145,17 @@ public class Player : MonoBehaviour
             }
         }
     }
-    
+    private IEnumerator AbsorbNectar()
+    {
+        Debug.Log("吸花蜜開始");
+        isAbsorbing = true; // 設置吸花蜜狀態
+        animator.SetBool("Absorb", true); // 設置吸花蜜動畫參數
+
+        yield return new WaitForSeconds(1.5f); // 動畫持續時間（根據實際動畫調整）
+
+        Debug.Log("吸花蜜完成");
+        animator.SetBool("Absorb", false); // 結束吸花蜜動畫
+        // Debug.Log("動畫參數 Absorb 已設置為 false");
+        isAbsorbing = false; // 重置吸花蜜狀態
+    }
 }
